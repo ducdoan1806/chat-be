@@ -17,8 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from oauth2_provider import urls as oauth2_urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("chat.urls")),  # Include chat app URLs
+    path("o/", include(oauth2_urls)),
 ]

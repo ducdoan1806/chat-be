@@ -9,6 +9,14 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email"]
 
 
+class LastMessageSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Message
+        fields = ["id", "body", "created_at", "sender", "read"]
+
+
 class ConversationParticipantSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(
@@ -22,10 +30,17 @@ class ConversationParticipantSerializer(serializers.ModelSerializer):
 
 class ConversationSerializer(serializers.ModelSerializer):
     participants = UserSerializer(many=True, read_only=True)
+    last_message = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
-        fields = ["id", "name", "created_at", "participants"]
+        fields = ["id", "name", "created_at", "participants", "last_message"]
+
+    def get_last_message(self, obj):
+        last_msg = obj.messages.order_by("-created_at").first()
+        if last_msg:
+            return LastMessageSerializer(last_msg).data
+        return None
 
 
 class MessageSerializer(serializers.ModelSerializer):
