@@ -36,7 +36,6 @@ ALLOWED_HOSTS = config(
 
 INSTALLED_APPS = [
     "oauth2_provider",
-    "channels",
     "chat",
     "corsheaders",
     "rest_framework",
@@ -48,14 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
-}
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
