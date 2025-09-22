@@ -1,9 +1,11 @@
+from email.mime import message
 import socketio
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import transaction
 from .models import *
 import logging
+from .serializers import *
 
 # Kết nối tới Socket.IO server Node.js
 sio = socketio.Client()
@@ -28,15 +30,13 @@ def get_user_ids_by_conversation(conversation_id):
 def emit_message_event(message):
     """Emit event khi có message mới."""
     user_ids = get_user_ids_by_conversation(message.conversation_id)
+    serialized_message = MessageSerializer(message).data
 
     sio.emit(
         "message",
         {
-            "sender": message.sender_id,
-            "conversation": message.conversation_id,
-            "body": message.body,
-            "created_at": message.created_at.isoformat(),
             "recipients": user_ids,
+            **serialized_message,
         },
     )
 
