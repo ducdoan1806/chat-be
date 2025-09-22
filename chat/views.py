@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from .serializers import *
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from datetime import datetime
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -40,6 +41,19 @@ class ConversationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return Conversation.objects.filter(participants=user).order_by("-created_at")
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user = request.user
+        part, _ = ConversationParticipant.objects.get_or_create(
+            conversation=instance, user=user
+        )
+        if part:
+            part.last_checked_at = datetime.now()
+            part.save()
+        return Response(
+            ConversationSerializer(instance, context={"request": request}).data
+        )
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -76,22 +90,6 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response(
             {"updated_count": count, "messages": serializer.data},
             status=status.HTTP_200_OK,
-        )
-
-    def perform_create(self, serializer):
-        message = serializer.save()
-
-        # broadcast qua channel layer
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"chat_{message.conversation.id}",
-            {
-                "type": "chat_message",
-                "id": message.id,
-                "message": message.body,
-                "sender": message.sender.id,
-                "created_at": str(message.created_at),
-            },
         )
 
 
