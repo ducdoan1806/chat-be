@@ -99,7 +99,11 @@ DATABASES = {
         "PASSWORD": config("SQL_PASSWORD"),
         "HOST": config("SQL_HOST"),
         "PORT": config("SQL_PORT"),
-        "OPTIONS": {"charset": "utf8mb4", "init_command": "SET NAMES 'utf8mb4'"},
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "init_command": "SET NAMES 'utf8mb4'",
+            "connect_timeout": 10,
+        },
     }
 }
 
